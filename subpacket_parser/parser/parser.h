@@ -16,9 +16,9 @@ public:
         INVALID_PACKET  = 2
     };
 
-    static Error parse(const QString filename/*, QByteArray byte_input*/);
+    static Error parse_json(const QByteArray& inputBuffer);
      QJsonObject m_currentJsonObject;
-
+    static Error parse(const QByteArray& inputBuffer, QString &outString, QString& outType);
 
 };
 
