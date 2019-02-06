@@ -31,6 +31,21 @@ const char *arr_type[]= {"Reserved",
                          "DisplayPort MSA change  ",
                          "DisplayPort VB-ID change  "
 };
+enum packet_type{
+    HDMI_packet = 1,
+    I2C_packet =2,
+    HPD_packet =3,
+    CEC_packet =4,
+    DisplayPort_AUX_packet =5,
+    DisplayPort_secondary_data_packet =6,
+    DisplayPort_MSA_packet =7,
+    DisplayPort_VB_ID_packet =8,
+    USB_C_packet =9,
+    F_W_formatted_diagnostic_message =10,
+    DisplayPort_MSA_change  =11,
+    DisplayPort_VB_ID_change =12
+};
+
 
 Parser::Parser()
 {
@@ -77,6 +92,7 @@ Parser::Error Parser::parse(const QByteArray &inputBuffer, QString &outString, Q
         outString+="TIMESTAMP[31:0] = "+ QString::number(TIMESTAMP);
         outString+="TIMESTAMP[64:32]  = "+ QString::number(TIMESTAMP2);
         long packet_ID = byte[8];
+
 
         outType=arr_type[packet_ID];
         long device_ID = byte[9]&0x0f;
@@ -125,7 +141,7 @@ Parser::Error Parser::parse(const QByteArray &inputBuffer, QString &outString, Q
 
 
         switch (packet_ID) {
-        case 1:{
+        case HDMI_packet: {
             outString+="Device ID= "+ QString::number(device_ID) + "\n";
             outString+="Flags= "+ QString::number(flags)+" (Should be 0)\n";
             outString+="Data lenght= "+QString::number(data_lenght)+" (Should be 36)\n";
@@ -168,7 +184,7 @@ Parser::Error Parser::parse(const QByteArray &inputBuffer, QString &outString, Q
             outString+="BCH3="+QString::number(BCH3)+"\n";
 
         break;}
-        case 2:{
+        case I2C_packet:{
             outString+="Device ID= "+ QString::number(device_ID) + "\n";
             if(flags<=7){
                 switch (flags) {
@@ -222,7 +238,7 @@ Parser::Error Parser::parse(const QByteArray &inputBuffer, QString &outString, Q
             };
 
             break;}
-        case 3:{
+        case HPD_packet:{
             switch (device_ID) {
             case 0:
                 outString+="Device ID= "+ QString::number(device_ID) + "(HDMI RX)\n";
@@ -241,7 +257,7 @@ Parser::Error Parser::parse(const QByteArray &inputBuffer, QString &outString, Q
             outString+="Data lenght= "+QString::number(data_lenght)+" (Should be 0)\n";
             break;
         }
-        case 5:{
+        case DisplayPort_AUX_packet:{
             outString+="Device ID= "+ QString::number(device_ID) + "\n";
             int sw=flags&0x07;
             switch (sw) {
@@ -290,7 +306,7 @@ Parser::Error Parser::parse(const QByteArray &inputBuffer, QString &outString, Q
             }
             break;
         }
-        case 6:{
+        case DisplayPort_secondary_data_packet:{
             outString+="Device ID= "+ QString::number(device_ID) + "\n";
             switch (flags) {
             case 0:
@@ -338,7 +354,7 @@ Parser::Error Parser::parse(const QByteArray &inputBuffer, QString &outString, Q
 
             break;
         }
-        case 7:{
+        case DisplayPort_MSA_packet:{
             outString+="Device ID= "+ QString::number(device_ID) + "\n";
             outString+="Stream ID= "+QString::number(flags&0x03)+"\n";
             outString+="Data lenght= "+QString::number(data_lenght)+"(Should be 24)\n";
@@ -347,7 +363,7 @@ Parser::Error Parser::parse(const QByteArray &inputBuffer, QString &outString, Q
             };
             break;
         }
-        case 8:{
+        case DisplayPort_VB_ID_packet:{
             outString+="Device ID= "+ QString::number(device_ID) + "\n";
             outString+="Stream ID= "+QString::number(flags&0x03)+ "\n";
             outString+="Data lenght= "+QString::number(data_lenght)+"(Should be 3)\n";
@@ -471,7 +487,7 @@ Parser::Error Parser::parse_json(const QByteArray& inputBuffer)
 
 
     switch (packet_ID) {
-    case 1:{
+    case HDMI_packet:{
         json["Device ID= "]= QString::number(device_ID) + "";
         json["Flags= "]= QString::number(flags)+" (Should be 0)";
         json["Data lenght= "]=QString::number(data_lenght)+" (Should be 36)";
@@ -514,7 +530,7 @@ Parser::Error Parser::parse_json(const QByteArray& inputBuffer)
         json["BCH3="]=QString::number(BCH3)+"";
 
     break;}
-    case 2:{
+    case I2C_packet:{
         json["Device ID= "]= QString::number(device_ID) + "";
         if(flags<=7){
             switch (flags) {
@@ -568,7 +584,7 @@ Parser::Error Parser::parse_json(const QByteArray& inputBuffer)
         };
 
         break;}
-    case 3:{
+    case HPD_packet:{
         switch (device_ID) {
         case 0:
             json["Device ID= "]= QString::number(device_ID) + "(HDMI RX)";
@@ -587,7 +603,7 @@ Parser::Error Parser::parse_json(const QByteArray& inputBuffer)
         json["Data lenght= "]=QString::number(data_lenght)+" (Should be 0)";
         break;
     }
-    case 5:{
+    case DisplayPort_AUX_packet:{
         json["Device ID= "]= QString::number(device_ID) + "";
         int sw=flags&0x07;
         switch (sw) {
@@ -636,7 +652,7 @@ Parser::Error Parser::parse_json(const QByteArray& inputBuffer)
         }
         break;
     }
-    case 6:{
+    case DisplayPort_secondary_data_packet:{
         json["Device ID= "]= QString::number(device_ID) + "";
         switch (flags) {
         case 0:
@@ -684,7 +700,7 @@ Parser::Error Parser::parse_json(const QByteArray& inputBuffer)
 
         break;
     }
-    case 7:{
+    case DisplayPort_MSA_packet:{
         json["Device ID= "]= QString::number(device_ID) + "";
         json["Stream ID= "]=QString::number(flags&0x03)+"";
         json["Data lenght= "]=QString::number(data_lenght)+"(Should be 24)";
@@ -693,7 +709,7 @@ Parser::Error Parser::parse_json(const QByteArray& inputBuffer)
         };
         break;
     }
-    case 8:{
+    case DisplayPort_VB_ID_packet:{
         json["Device ID= "]= QString::number(device_ID) + "";
         json["Stream ID= "]=QString::number(flags&0x03)+ "";
         json["Data lenght= "]=QString::number(data_lenght)+"(Should be 3)";
