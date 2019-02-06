@@ -33,10 +33,46 @@ void MainWindow::on_open_clicked()
 
 void MainWindow::on_start_clicked()
 {
+    QByteArray input_buffer;
+    QString out_result,out_type;
+
 
     QString filename =ui->path->text();
+    QFile fileIn(filename);
+            if(fileIn.open(QIODevice::ReadOnly))
+            {
 
-    Parser::parse(filename /*, QByteArray byte_input*/);
+                bool ok;
+                int i=0;
+                QString Byte;
+                Byte=fileIn.read(2);
+                input_buffer[0]=Byte.toInt(&ok,16);
+                i++;
+
+                   while (!fileIn.atEnd())
+                   {
+                       Byte=fileIn.read(3);
+                       input_buffer[i]=Byte.toInt(&ok,16);
+                       i++;
+
+                   }
+
+            }
+            else{
+
+                QString buffer = ui->buffer_input->text();
+                input_buffer = QByteArray::fromHex(buffer.toUtf8());
+
+            }
+
+
+
+
+
+    Parser::parse(input_buffer, out_result, out_type);
+    Parser::parse_json(input_buffer);
+    ui->pac_type->setText(out_type);
+    ui->result->setText(out_result);
 
 
 }
